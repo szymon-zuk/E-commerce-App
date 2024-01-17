@@ -17,9 +17,9 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="media/product_images/", null=True, blank=True)
-    thumbnail = ResizedImageField(
-        size=[200, 200], upload_to="media/product_thumbnails/", null=True, blank=True
+    image = models.ImageField(upload_to="product_images/", null=True, blank=True)
+    thumbnail = models.ImageField(
+        upload_to="product_thumbnails/", null=True, blank=True
     )
 
     def __str__(self):
