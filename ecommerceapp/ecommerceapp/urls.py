@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from shop.views import ProductListView, ProductDetailsView, ProductCreateView
+from shop.views import (
+    ProductListView,
+    ProductDetailsView,
+    ProductCreateView,
+    ProductRetrieveUpdateDestroyView,
+)
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -26,4 +31,9 @@ urlpatterns = [
     path("products/", ProductListView.as_view(), name="product-list"),
     path("product/<int:pk>/", ProductDetailsView.as_view(), name="product-details"),
     path("product/create/", ProductCreateView.as_view(), name="create-product"),
+    path(
+        "product/modify/<int:pk>/",
+        ProductRetrieveUpdateDestroyView.as_view(),
+        name="retrieve-update-delete-product",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
