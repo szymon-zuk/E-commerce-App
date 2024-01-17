@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "shop",
     "users",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,7 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.UserRole"
+
+REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
+
+SPECTACULAR_SETTINGS = {"TITLE": "E-commerce App"}
