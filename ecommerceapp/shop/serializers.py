@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product, Order, OrderItem
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -120,3 +120,14 @@ class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ["product", "quantity"]
+
+
+class OrderSerializer(serializers.Serializer):
+    delivery_address = serializers.CharField()
+    products = OrderItemSerializer(many=True)

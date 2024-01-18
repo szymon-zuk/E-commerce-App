@@ -32,7 +32,9 @@ class Order(models.Model):
     products = models.ManyToManyField(Product, through="OrderItem")
     order_date = models.DateTimeField(auto_now_add=True)
     payment_due_date = models.DateTimeField()
-    aggregate_price = models.DecimalField(max_digits=10, decimal_places=2)
+    aggregate_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
     def __str__(self):
         return f"Order {self.id} - Customer {self.customer}"

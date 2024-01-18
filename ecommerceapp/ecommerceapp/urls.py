@@ -21,6 +21,7 @@ from shop.views import (
     ProductDetailsView,
     ProductCreateView,
     ProductRetrieveUpdateDestroyView,
+    OrderCreateView,
 )
 from django.conf.urls.static import static
 from django.conf import settings
@@ -39,6 +40,7 @@ urlpatterns = [
         ProductRetrieveUpdateDestroyView.as_view(),
         name="retrieve-update-delete-product",
     ),
+    path("order/create/", OrderCreateView.as_view(), name="create-order"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/schema/docs/",
