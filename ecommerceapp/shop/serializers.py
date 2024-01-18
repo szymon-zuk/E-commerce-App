@@ -129,5 +129,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=32)
+    last_name = serializers.CharField(max_length=32)
     delivery_address = serializers.CharField()
     products = OrderItemSerializer(many=True)
+    aggregate_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    payment_due_date = serializers.DateTimeField(read_only=True)
