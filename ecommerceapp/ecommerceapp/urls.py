@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from shop.views import (
     ProductListView,
     ProductDetailsView,
@@ -29,6 +29,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("dj_rest_auth.urls")),
+    path("accounts/register/", include("dj_rest_auth.registration.urls")),
     path("products/", ProductListView.as_view(), name="product-list"),
     path("product/<int:pk>/", ProductDetailsView.as_view(), name="product-details"),
     path("product/create/", ProductCreateView.as_view(), name="create-product"),
