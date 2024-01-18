@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # 3rd party apps
     "rest_framework",
     "rest_framework.authtoken",
     "allauth",
@@ -45,9 +46,10 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
-    "shop",
-    "users",
     "drf_spectacular",
+    # local apps
+    "shop",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
