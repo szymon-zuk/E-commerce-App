@@ -1,18 +1,14 @@
-from datetime import datetime
-
 from django.db.models import Count
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
-from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics, permissions, filters, status, serializers, viewsets
+from rest_framework import generics, permissions, filters, status, serializers
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from .models import Product, Order, OrderItem
 from .serializers import (
     ProductSerializer,
