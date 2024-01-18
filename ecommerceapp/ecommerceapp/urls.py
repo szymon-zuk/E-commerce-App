@@ -22,11 +22,12 @@ from shop.views import (
     ProductCreateView,
     ProductRetrieveUpdateDestroyView,
     OrderCreateView,
+    OrderProductsStatisticsView,
+    OrderListView,
 )
 from django.conf.urls.static import static
 from django.conf import settings
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -41,6 +42,12 @@ urlpatterns = [
         name="retrieve-update-delete-product",
     ),
     path("order/create/", OrderCreateView.as_view(), name="create-order"),
+    path(
+        "order/statistics/",
+        OrderProductsStatisticsView.as_view(),
+        name="order-statistics",
+    ),
+    path("order/list/", OrderListView.as_view(), name="order"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/schema/docs/",

@@ -137,3 +137,20 @@ class OrderSerializer(serializers.Serializer):
         max_digits=10, decimal_places=2, read_only=True
     )
     payment_due_date = serializers.DateTimeField(read_only=True)
+
+
+class OrderListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+
+class ProductStatsSerializer(serializers.Serializer):
+    product_name = serializers.CharField(source="product__name")
+    total_orders = serializers.IntegerField()
+
+
+class ProductStatsInputSerializer(serializers.Serializer):
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    number_of_products = serializers.IntegerField()
