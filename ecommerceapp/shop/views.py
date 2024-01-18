@@ -1,12 +1,17 @@
+from datetime import datetime
+
+from django.db.models import Count
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from rest_framework import generics, permissions, filters, status, serializers
+from drf_spectacular.utils import extend_schema
+from rest_framework import generics, permissions, filters, status, serializers, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Product, Order, OrderItem
 from .serializers import (
@@ -14,6 +19,9 @@ from .serializers import (
     ProductCreateSerializer,
     ProductRetrieveUpdateDestroySerializer,
     OrderSerializer,
+    ProductStatsInputSerializer,
+    ProductStatsSerializer,
+    OrderListSerializer,
 )
 from .permissions import IsSellerOrAdmin
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -139,3 +147,43 @@ class OrderCreateView(generics.CreateAPIView):
             status=status.HTTP_201_CREATED,
             headers=headers,
         )
+
+
+class OrderListView(generics.ListAPIView):
+    serializer_class = OrderListSerializer
+    permission_classes = [IsSellerOrAdmin]
+    queryset = Order.objects.all()
+
+
+class OrderProductsStatisticsView(APIView):
+    permission_classes = [IsSellerOrAdmin]
+    serializer_class = ProductStatsInputSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    @extend_schema(
+        request=ProductStatsInputSerializer,
+        responses={200: ProductStatsSerializer(many=True)},
+    )
+    def post(self, request):
+        input_serializer = ProductStatsInputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        start_date = input_serializer.validated_data["start_date"]
+        end_date = input_serializer.validated_data["end_date"]
+        number_of_products = input_serializer.validated_data["number_of_products"]
+
+        most_ordered_products = (
+            OrderItem.objects.filter(order__order_date__range=(start_date, end_date))
+            .values("product__name")
+            .annotate(total_orders=Count("product"))
+            .order_by("-total_orders")[:number_of_products]
+        )
+        result_data = [
+            {
+                "product_name": product_stat["product__name"],
+                "total_orders": product_stat["total_orders"],
+            }
+            for product_stat in most_ordered_products
+        ]
+
+        return Response(result_data, status=status.HTTP_200_OK)
