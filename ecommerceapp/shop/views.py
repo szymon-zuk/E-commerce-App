@@ -1,9 +1,10 @@
-import datetime
+from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, permissions, filters, status, serializers
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -87,34 +88,54 @@ class OrderCreateView(generics.CreateAPIView):
             fail_silently=False,
         )
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         delivery_address = serializer.validated_data["delivery_address"]
         products_data = serializer.validated_data["products"]
+        user_first_name = serializer.validated_data["first_name"]
+        user_last_name = serializer.validated_data["last_name"]
 
-        payment_due_date = datetime.datetime.now() + datetime.timedelta(days=5)
+        payment_due_date = timezone.now() + timezone.timedelta(days=5)
 
-        order = Order.objects.create(
-            customer=self.request.user,
-            delivery_address=delivery_address,
-            payment_due_date=payment_due_date,
-        )
-
-        for product_data in products_data:
-            product = product_data["product"]
-            quantity = product_data["quantity"]
-
-            if isinstance(product, Product):
-                product_instance = product
-            else:
-                product_instance = Product.objects.get(pk=product)
-
-            OrderItem.objects.create(
-                order=order, product=product_instance, quantity=quantity
+        if (
+            user_first_name == self.request.user.first_name
+            and user_last_name == self.request.user.last_name
+        ):
+            order = Order.objects.create(
+                customer=self.request.user,
+                delivery_address=delivery_address,
+                payment_due_date=payment_due_date,
             )
 
-        order.aggregate_price = self.calculate_aggregate_price(order)
-        order.save()
+            for product_data in products_data:
+                product = product_data["product"]
+                quantity = product_data["quantity"]
+
+                if isinstance(product, Product):
+                    product_instance = product
+                else:
+                    product_instance = Product.objects.get(pk=product)
+
+                OrderItem.objects.create(
+                    order=order, product=product_instance, quantity=quantity
+                )
+
+            order.aggregate_price = self.calculate_aggregate_price(order)
+            order.save()
+        else:
+            raise serializers.ValidationError("Incorrect first name or last name.")
 
         self.send_confirmation_email(order)
 
-        return order
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            {
+                "status": "Order created successfully",
+                "aggregate_price": order.aggregate_price,
+                "payment_due_date": order.payment_due_date,
+            },
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
