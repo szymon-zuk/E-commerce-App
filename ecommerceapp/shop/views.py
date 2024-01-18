@@ -1,4 +1,8 @@
 import datetime
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from rest_framework import generics, permissions, filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -67,6 +71,22 @@ class OrderCreateView(generics.CreateAPIView):
 
         return total_price
 
+    def send_confirmation_email(self, order):
+        subject = "Order Confirmation"
+        html_message = render_to_string("confirmation_email.html", {"order": order})
+        plain_message = strip_tags(html_message)
+        from_email = settings.EMAIL_HOST_USER
+        to_email = [self.request.user.email]
+
+        send_mail(
+            subject,
+            plain_message,
+            from_email,
+            to_email,
+            html_message=html_message,
+            fail_silently=False,
+        )
+
     def perform_create(self, serializer):
         delivery_address = serializer.validated_data["delivery_address"]
         products_data = serializer.validated_data["products"]
@@ -94,5 +114,7 @@ class OrderCreateView(generics.CreateAPIView):
 
         order.aggregate_price = self.calculate_aggregate_price(order)
         order.save()
+
+        self.send_confirmation_email(order)
 
         return order

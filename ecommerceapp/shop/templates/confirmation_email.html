@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Confirmation</h1>
+        <p>Hello {{ order.customer.username }},</p>
+
+        <p>Thank you for placing an order with us. Your order details are as follows:</p>
+
+        <ul>
+            <li><strong>Order ID:</strong> {{ order.id }}</li>
+            <li><strong>Delivery Address:</strong> {{ order.delivery_address }}</li>
+            <li><strong>Total Price:</strong> {{ order.aggregate_price }}</li>
+        </ul>
+
+        <p>Products:</p>
+        <ul>
+            {% for order_item in order.orderitem_set.all %}
+                <li>{{ order_item.product.name }} - Quantity: {{ order_item.quantity }}</li>
+            {% endfor %}
+        </ul>
+
+        <p>Thank you for choosing us!</p>
+    </div>
+</body>
+</html>
