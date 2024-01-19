@@ -103,3 +103,26 @@ def test_order_create_view(client, user_customer, product, product2, order_data)
     assert abs(expected_date - obtained_date) < timedelta(seconds=1)
     final_order_count = Order.objects.count()
     assert final_order_count == initial_order_count + 1
+
+
+@pytest.mark.django_db
+def test_order_list_view(client):
+    url = reverse("order-list")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert len(response.data) == Order.objects.count()
+
+
+@pytest.mark.django_db
+def test_order_product_statistics_view(client, product, product2, order):
+    url = reverse("order-statistics")
+    payload = {
+        "start_date": "2020-01-01",
+        "end_date": "2024-01-21",
+        "number_of_products": 3,
+    }
+    response = client.post(url, data=payload)
+    assert response.status_code == 200
+    print(response.content)
+    assert any("product_name" in item for item in response.data)
+    assert any("total_orders" in item for item in response.data)

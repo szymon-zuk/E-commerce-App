@@ -88,18 +88,20 @@ def product2(client, product_category):
 def order_data(user_customer, product, product2):
     return {
         "id": 1,
-        "customer": user_customer.id,
-        "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
+        "customer": user_customer,
         "delivery_address": "test delivery address",
         "payment_due_date": timezone.now() + timedelta(days=5),
-        "aggregate_price": product.price + product.price,
+        "aggregate_price": float(product.price) + float(product2.price),
     }
 
 
 @pytest.fixture
-def order(order_data, product):
+def order(order_data, product, product2):
     order_instance = Order.objects.create(**order_data)
-    OrderItem.objects.create(order=order_instance, product=product, quantity=2)
+
+    OrderItem.objects.create(order=order_instance, product=product, quantity=1)
+    OrderItem.objects.create(order=order_instance, product=product2, quantity=1)
+
     return order_instance
 
 
