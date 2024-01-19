@@ -60,6 +60,12 @@ To log in to the admin panel, use the following credentials:
 
 - **Login:** testsuperuser
 - **Password:** test12345
+- 
+### Tests
+To run tests execute:
+```bash
+pytest
+```
 
 ### Usage
 # Product Operations
