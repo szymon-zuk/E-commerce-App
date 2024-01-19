@@ -1,6 +1,8 @@
+from datetime import timedelta
 import pytest
+from django.utils import timezone
 from users.models import UserRole
-from shop.models import ProductCategory, Product
+from shop.models import ProductCategory, Product, Order, OrderItem
 from rest_framework.test import APIClient
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,6 +21,8 @@ def client(user_seller):
 @pytest.fixture
 def user_customer():
     return UserRole.objects.create_user(
+        first_name="testfirstname",
+        last_name="testlastname",
         username="testcustomer",
         email="testemail@gmail.com",
         password="test12345",
@@ -29,6 +33,8 @@ def user_customer():
 @pytest.fixture
 def user_seller():
     return UserRole.objects.create(
+        first_name="testfirstname",
+        last_name="testlastname",
         username="testseller",
         email="testemail@gmail.com",
         password="test12345",
@@ -39,6 +45,8 @@ def user_seller():
 @pytest.fixture
 def user_admin():
     return UserRole.objects.create(
+        first_name="testfirstname",
+        last_name="testlastname",
         username="testadmin",
         email="testemail@gmail.com",
         password="test12345",
@@ -58,20 +66,33 @@ def product(client, product_category):
         id=1,
         name="Test Product",
         description="Test Description",
-        price="10.99",
+        price="123.12",
         category=product_category,
     )
     return product_instance
 
 
 @pytest.fixture
-def order_data(user):
+def product2(client, product_category):
+    product_instance = Product.objects.create(
+        id=2,
+        name="Test Product",
+        description="Test Description",
+        price="3.29",
+        category=product_category,
+    )
+    return product_instance
+
+
+@pytest.fixture
+def order_data(user_customer, product, product2):
     return {
-        "customer": user,
-        "products": [{"product": 1, "quantity": 1}, {"product": 2, "quantity": 2}],
-        "delivery_address": "Test Address",
-        "payment_due_date": "2024-01-31T12:00:00Z",
-        "aggregate_price": 20.99,
+        "id": 1,
+        "customer": user_customer.id,
+        "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
+        "delivery_address": "test delivery address",
+        "payment_due_date": timezone.now() + timedelta(days=5),
+        "aggregate_price": product.price + product.price,
     }
 
 
@@ -84,5 +105,4 @@ def order(order_data, product):
 
 @pytest.fixture
 def product_serializer(product_data):
-    # Return a serialized representation of the product data
     return ProductSerializer(product_data).data

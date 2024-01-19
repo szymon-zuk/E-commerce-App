@@ -1,7 +1,8 @@
+from datetime import timedelta
 import pytest
 from rest_framework.reverse import reverse
-
-from shop.models import Product
+from rest_framework.utils import json
+from shop.models import Product, Order, OrderItem
 
 
 @pytest.mark.django_db
@@ -79,3 +80,26 @@ def test_product_update_view_method_delete(client, product):
     response = client.delete(url)
     assert response.status_code == 204
     assert not Product.objects.filter(id=product.id).exists()
+
+
+@pytest.mark.django_db
+def test_order_create_view(client, user_customer, product, product2, order_data):
+    url = reverse("create-order")
+    initial_order_count = Order.objects.count()
+    payload = {
+        "first_name": user_customer.first_name,
+        "last_name": user_customer.last_name,
+        "delivery_address": "test delivery address",
+        "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
+    }
+    response = client.post(
+        url, data=json.dumps(payload), content_type="application/json"
+    )
+    print(response.content)
+    assert response.status_code == 201
+    assert response.data["status"] == "Order created successfully"
+    expected_date = order_data["payment_due_date"]
+    obtained_date = response.data["payment_due_date"]
+    assert abs(expected_date - obtained_date) < timedelta(seconds=1)
+    final_order_count = Order.objects.count()
+    assert final_order_count == initial_order_count + 1
