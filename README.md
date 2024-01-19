@@ -46,13 +46,20 @@ Then apply migrations and run the server:
 python manage.py migrate
 python manage.py runserver
 ```
-If you want to use Docker run:
+If you want to use Docker (easier way to get started) being in the main directory ot the app run:
 ```bash
+cd ecommerceapp
 docker-compose up -d --build
 ```
-and log in in admin panel as:
-login: testsuperuser
-password: test12345
+and then to run the container:
+```bash
+docker-compose up
+```
+
+To log in to the admin panel, use the following credentials:
+
+- **Login:** testsuperuser
+- **Password:** test12345
 
 ### Usage
 # Product Operations
