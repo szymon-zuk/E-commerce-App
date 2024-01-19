@@ -5,6 +5,10 @@ User = settings.AUTH_USER_MODEL
 
 
 class ProductCategory(models.Model):
+    """
+    Model representing a product category.
+    """
+
     name = models.CharField(max_length=255)
 
     def __str__(self):
@@ -12,6 +16,10 @@ class ProductCategory(models.Model):
 
 
 class Product(models.Model):
+    """
+    Model representing a single product.
+    """
+
     name = models.CharField(max_length=64)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -26,6 +34,10 @@ class Product(models.Model):
 
 
 class Order(models.Model):
+    """
+    Model representing an order in relation to customer and products it contains.
+    """
+
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
     delivery_address = models.TextField()
     products = models.ManyToManyField(Product, through="OrderItem")
@@ -40,6 +52,10 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """
+    Model representing the quantity and specific products included in an order.
+    """
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()

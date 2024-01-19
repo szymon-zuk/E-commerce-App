@@ -8,17 +8,28 @@ from copy import deepcopy
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Product model, used for regular serialization.
+    """
+
     class Meta:
         model = Product
         fields = "__all__"
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating a Product instance, including thumbnail creation logic.
+    """
+
     class Meta:
         model = Product
         fields = ("name", "description", "price", "category", "image")
 
     def create(self, validated_data):
+        """
+        Create a new Product instance with the logic of 200x200 thumbnail generation.
+        """
         thumbnail_size = (200, 200)
         image = validated_data.pop("image", None)
 
@@ -31,7 +42,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
             unique_id = uuid.uuid4().hex
 
-            # Zapis miniatury
+            # Thumbnail save
             thumbnail_io = BytesIO()
             image_copy.save(thumbnail_io, format="JPEG")
             thumbnail = InMemoryUploadedFile(
@@ -44,7 +55,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             )
             product.thumbnail.save(f"thumbnail_{unique_id}.jpg", thumbnail)
 
-            # Zapis oryginalnego obrazu
+            # Original image save
             image_io = BytesIO()
             image.save(image_io, format="JPEG")
             image = InMemoryUploadedFile(
@@ -61,11 +72,18 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
+    """
+    Serializer for retrieving, updating, or destroying a Product instance, including image and thumbnail handling.
+    """
+
     class Meta:
         model = Product
         fields = ("name", "description", "price", "category", "image")
 
     def update(self, instance, validated_data):
+        """
+        Update a Product instance with the functionality of updating image and generating new thumbnail.
+        """
         thumbnail_size = (200, 200)
         image = validated_data.pop("image", None)
 
@@ -76,7 +94,7 @@ class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
         if old_thumbnail:
             old_thumbnail.delete()
 
-        # Aktualizacja pól modelu
+        # Model fields update
         instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.price = validated_data.get("price", instance.price)
@@ -85,13 +103,13 @@ class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
         if image:
             image = Image.open(image)
 
-            # Kopiowanie obrazu przed modyfikacją
+            # Creating a copy before modification
             image_copy = image.copy()
             image_copy.thumbnail(thumbnail_size)
 
             unique_id = uuid.uuid4().hex
 
-            # Zapis miniatury
+            # Thumbnail save
             thumbnail_io = BytesIO()
             image_copy.save(thumbnail_io, format="JPEG")
             thumbnail = InMemoryUploadedFile(
@@ -104,7 +122,7 @@ class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
             )
             instance.thumbnail.save(f"thumbnail_{unique_id}.jpg", thumbnail)
 
-            # Zapis oryginalnego obrazu
+            # Original image save
             image_io = BytesIO()
             image.save(image_io, format="JPEG")
             image = InMemoryUploadedFile(
@@ -123,12 +141,20 @@ class ProductRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the OrderItem model.
+    """
+
     class Meta:
         model = OrderItem
         fields = ["product", "quantity"]
 
 
 class OrderSerializer(serializers.Serializer):
+    """
+    Serializer for Order data, used for creating new orders.
+    """
+
     first_name = serializers.CharField(max_length=32)
     last_name = serializers.CharField(max_length=32)
     delivery_address = serializers.CharField()
@@ -140,17 +166,29 @@ class OrderSerializer(serializers.Serializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing Order instances.
+    """
+
     class Meta:
         model = Order
         fields = "__all__"
 
 
 class ProductStatsSerializer(serializers.Serializer):
+    """
+    Serializer for product statistics, showing the product name and total orders of this product.
+    """
+
     product_name = serializers.CharField(source="product__name")
     total_orders = serializers.IntegerField()
 
 
 class ProductStatsInputSerializer(serializers.Serializer):
+    """
+    Serializer for input data required for generating product statistics.
+    """
+
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     number_of_products = serializers.IntegerField()

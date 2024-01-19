@@ -24,6 +24,19 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class ProductListView(generics.ListAPIView):
+    """
+    List all products with search, ordering, and pagination capabilities.
+
+    Parameters:
+    - `name` (str): Search for products by name.
+    - `category__name` (str): Search for products by category name.
+    - `description` (str): Search for products by description.
+    - `price` (str): Search for products by price.
+
+    Returns:
+    - `List[ProductSerializer]`: A list of product details.
+    """
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = PageNumberPagination
@@ -33,16 +46,50 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductDetailsView(generics.RetrieveAPIView):
+    """
+    Retrieve details of a specific product.
+
+    Parameters:
+    - `pk` (int): The primary key of the product.
+
+    Returns:
+    - `ProductSerializer`: Details of the specified product.
+    """
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
 class ProductCreateView(generics.CreateAPIView):
+    """
+    Create a new product, accessible to sellers and admins only.
+
+    Parameters:
+    - `name` (str): The name of the product.
+    - `description` (str): The description of the product.
+    - `price` (decimal): The price of the product.
+    - `category` (int): The primary key of the product category.
+    - `image` (file): The image file of the product.
+    - `thumbnail` (file): The thumbnail image file of the product.
+
+    Returns:
+    - `ProductCreateSerializer`: Details of the created product.
+    """
+
     serializer_class = ProductCreateSerializer
     permission_classes = [IsSellerOrAdmin]
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
+        """
+        Perform the creation of a new product and handle image and thumbnail uploads.
+
+        Parameters:
+        - `serializer` (ProductCreateSerializer): The serializer instance.
+
+        Returns:
+        - None
+        """
         serializer.save(
             image=self.request.data.get("image"),
             thumbnail=self.request.data.get("thumbnail"),
@@ -50,12 +97,31 @@ class ProductCreateView(generics.CreateAPIView):
 
 
 class ProductRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a product, accessible to sellers and admins only.
+
+    Parameters:
+    - `pk` (int): The primary key of the product.
+
+    Returns:
+    - `ProductRetrieveUpdateDestroySerializer`: Details of the specified product.
+    """
+
     queryset = Product.objects.all()
     serializer_class = ProductRetrieveUpdateDestroySerializer
     permission_classes = [IsSellerOrAdmin]
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_update(self, serializer):
+        """
+        Perform the update of a product and handle image and thumbnail uploads.
+
+        Parameters:
+        - `serializer` (ProductRetrieveUpdateDestroySerializer): The serializer instance.
+
+        Returns:
+        - None
+        """
         serializer.save(
             image=self.request.data.get("image"),
             thumbnail=self.request.data.get("thumbnail"),
@@ -63,10 +129,33 @@ class ProductRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class OrderCreateView(generics.CreateAPIView):
+    """
+    Create a new order, accessible to authenticated users.
+
+    Parameters:
+    - `first_name` (str): The first name of the customer.
+    - `last_name` (str): The last name of the customer.
+    - `delivery_address` (str): The delivery address for the order.
+    - `products` (List[Dict[str, Union[int, Product]]]): List of products and quantities. Example products input:
+    [{"products": 2, "quantity": 1}, {"products": 1, "quantity":2}]
+
+    Returns:
+    - `Response`: Order creation status and details.
+    """
+
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def calculate_aggregate_price(self, order):
+        """
+        Calculate the aggregate price of an order based on its items.
+
+        Parameters:
+        - `order` (Order): The order instance.
+
+        Returns:
+        - float: The aggregate price of the order.
+        """
         total_price = 0
         order_items = OrderItem.objects.filter(order=order)
 
@@ -77,6 +166,15 @@ class OrderCreateView(generics.CreateAPIView):
         return total_price
 
     def send_confirmation_email(self, order):
+        """
+        Send an order confirmation email to the user.
+
+        Parameters:
+        - `order` (Order): The order instance.
+
+        Returns:
+        - None
+        """
         subject = "Order Confirmation"
         html_message = render_to_string("confirmation_email.html", {"order": order})
         plain_message = strip_tags(html_message)
@@ -93,6 +191,19 @@ class OrderCreateView(generics.CreateAPIView):
         )
 
     def create(self, request, *args, **kwargs):
+        """
+        Create a new order and send a confirmation email to the user.
+
+        Parameters:
+        - `request` (Request): The HTTP request.
+
+        Returns:
+        - `Response`: {
+                "status": "Order created successfully",
+                "aggregate_price": order.aggregate_price,
+                "payment_due_date": order.payment_due_date,
+            }
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -146,12 +257,34 @@ class OrderCreateView(generics.CreateAPIView):
 
 
 class OrderListView(generics.ListAPIView):
+    """
+    List all orders, accessible to sellers and admins only.
+
+    Returns:
+    - `OrderListSerializer`: A list of order details.
+    """
+
     serializer_class = OrderListSerializer
     permission_classes = [IsSellerOrAdmin]
     queryset = Order.objects.all()
 
 
 class OrderProductsStatisticsView(APIView):
+    """
+    Calculate and retrieve statistics on the most ordered products within a specified date range.
+
+    Parameters:
+    - `start_date` (date): The start date of the analysis period.
+    - `end_date` (date): The end date of the analysis period.
+    - `number_of_products` (int): The number of top products to retrieve.
+
+    Returns:
+    - `Response`: {
+        "product_name": (str) The name of the product,
+        "total_orders": (int) The total number of orders for the product,
+    }
+    """
+
     permission_classes = [IsSellerOrAdmin]
     serializer_class = ProductStatsInputSerializer
     parser_classes = [MultiPartParser, FormParser]
