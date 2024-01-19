@@ -2,63 +2,65 @@ import pytest
 from users.models import UserRole
 from shop.models import ProductCategory, Product
 from rest_framework.test import APIClient
-
-client = APIClient()
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @pytest.fixture
-def client():
-    return APIClient()
+def client(user_seller):
+    refresh = RefreshToken.for_user(user_seller)
+    access_token = str(refresh.access_token)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
+
+    return client
 
 
 @pytest.fixture
 def user_customer():
-    return UserRole.objects.create(
-        username="test",
+    return UserRole.objects.create_user(
+        username="testcustomer",
         email="testemail@gmail.com",
-        password="test1234",
+        password="test12345",
         role="customer",
     )
 
 
 @pytest.fixture
-def user_customer():
+def user_seller():
     return UserRole.objects.create(
-        username="test", email="testemail@gmail.com", password="test1234", role="seller"
+        username="testseller",
+        email="testemail@gmail.com",
+        password="test12345",
+        role="seller",
     )
 
 
 @pytest.fixture
-def user_customer():
+def user_admin():
     return UserRole.objects.create(
-        username="test", email="testemail@gmail.com", password="test1234", role="admin"
+        username="testadmin",
+        email="testemail@gmail.com",
+        password="test12345",
+        role="admin",
     )
 
 
 @pytest.fixture
-def product_category_data():
-    return {"name": "Test Category"}
-
-
-@pytest.fixture
-def product_category(product_category_data):
-    category_instance = ProductCategory.objects.create(**product_category_data)
+def product_category():
+    category_instance = ProductCategory.objects.create(id=1, name="Test Category")
     return category_instance
 
 
 @pytest.fixture
-def product_data(product_category):
-    return {
-        "name": "Test Product",
-        "description": "Test Description",
-        "price": 10.99,
-        "category": product_category,
-    }
-
-
-@pytest.fixture
-def product(client, product_data):
-    product_instance = Product.objects.create(**product_data)
+def product(client, product_category):
+    product_instance = Product.objects.create(
+        id=1,
+        name="Test Product",
+        description="Test Description",
+        price="10.99",
+        category=product_category,
+    )
     return product_instance
 
 
