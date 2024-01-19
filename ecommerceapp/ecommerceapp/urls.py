@@ -47,7 +47,7 @@ urlpatterns = [
         OrderProductsStatisticsView.as_view(),
         name="order-statistics",
     ),
-    path("order/list/", OrderListView.as_view(), name="order"),
+    path("order/list/", OrderListView.as_view(), name="order-list"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/schema/docs/",
