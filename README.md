@@ -87,7 +87,7 @@ password: test12345
 
 # API Documentation
 
-- Access the OpenAPI documentation at [http://localhost:8000/swagger](http://localhost:8000/api/schema/docs).
+- Access the documentation at [http://localhost:8000/api/schema/docs]
 
 # License
 
