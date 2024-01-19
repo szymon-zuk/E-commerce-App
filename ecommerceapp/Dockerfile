@@ -20,6 +20,7 @@ COPY . /app/
 ENV DJANGO_SETTINGS_MODULE=ecommerceapp.settings
 ENV DATABASE_URL=sqlite:///ecommerceapp.sqlite3
 
+RUN python manage.py makemigrations
 RUN python manage.py migrate
 
 EXPOSE 8000
