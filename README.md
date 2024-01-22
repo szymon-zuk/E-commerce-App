@@ -36,7 +36,6 @@ A Django REST Framework application for managing products, orders, and product s
 
 ### Installation
 The easiest way to get started is to proceed to main directory of the app and run:
-```
 ```bash
 docker-compose up -d --build
 ```
