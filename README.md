@@ -6,7 +6,7 @@ A Django REST Framework application for managing products, orders, and product s
 
 - [Features](#features)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
+  - [Tech Stack](#tech-stack)
   - [Installation](#installation)
 - [Usage](#usage)
   - [Product Operations](#product-operations)
