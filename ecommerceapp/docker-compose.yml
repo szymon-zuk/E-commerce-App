@@ -1,12 +1,43 @@
 version: "3"
 
 services:
-  web:
+
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.8-alpine3.17
+
+  backend:
+    container_name: ecommerce_backend
+    restart: always
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    image: ecommerce_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    command: sh -c "python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000"
+
+  celery_worker:
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    image: ecommerce_celery
     volumes:
-      - ./app
-    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+    command: sh -c "celery -A ecommerceapp worker -l INFO"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
