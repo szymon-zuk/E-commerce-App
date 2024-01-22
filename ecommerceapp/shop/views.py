@@ -192,6 +192,15 @@ class OrderCreateView(generics.CreateAPIView):
         )
 
     def send_payment_reminder_email(self, order):
+        """
+        Send a payment reminder email to the user.
+
+        Parameters:
+        - `order` (Order): The order instance.
+
+        Returns:
+        - None
+        """
         subject = "Payment reminder"
         html_message = render_to_string("payment_reminder_email.html", {"order": order})
         plain_message = strip_tags(html_message)
