@@ -91,7 +91,7 @@ docker exec -it ecommerce_backend pytest .
 
 # API Documentation
 
-- Access the documentation at [http://0:0:0:0:8000/api/schema/docs](http://0:0:0:0:8000/api/schema/docs) (this host only in the container - localhost if running locally).
+- Access the documentation at [http://0.0.0.0:8000/api/schema/docs](http://0.0.0.0:8000/api/schema/docs) (this host only in the container - localhost if running locally).
 
 # License
 
