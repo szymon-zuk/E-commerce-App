@@ -22,33 +22,22 @@ A Django REST Framework application for managing products, orders, and product s
 - List orders (sellers and admins only).
 - Calculate and retrieve statistics on the most ordered products within a specified date range (sellers and admins only).
 
-## Getting Started
-
-### Prerequisites
+### Tech Stack
 
 - Django
 - Django REST Framework
 - drf-spectacular
 - SQLite
+- Redis
+- Celery
+- Docker
+- docker-compose
+- django-allauth
 
 ### Installation
-To setup the app locally after cloning the repository create a virtual environment and install requirements.txt:
-
-```bash
-git clone git@github.com:szymon-zuk/E-commerce-App.git
-cd E-commerce-App/ecommerceapp
-python -m venv venv
-source ./bin/activate
-pip install -r requirements.txt
+The easiest way to get started is to proceed to main directory of the app and run:
 ```
-Then apply migrations and run the server:
 ```bash
-python manage.py migrate
-python manage.py runserver
-```
-If you want to use Docker (easier way to get started) being in the main directory ot the app run:
-```bash
-cd ecommerceapp
 docker-compose up -d --build
 ```
 and then to run the container:
@@ -56,15 +45,17 @@ and then to run the container:
 docker-compose up
 ```
 
-To log in to the admin panel, use the following credentials:
+To log in to the admin panel (/admin/), use the following credentials:
 
 - **Login:** testsuperuser
 - **Password:** test12345
-- 
+
+You can create your new test users from there and login on /accounts/login. For more URLs check out [API Documentation](#api-documentation).
+
 ### Tests
-To run tests execute:
+To run tests execute this command while container with the app is running
 ```bash
-pytest
+docker exec -it ecommerce_backend pytest .
 ```
 
 ### Usage
@@ -100,7 +91,7 @@ pytest
 
 # API Documentation
 
-- Access the documentation at [http://localhost:8000/api/schema/docs](http://localhost:8000/api/schema/docs)
+- Access the documentation at [http://0:0:0:0:8000/api/schema/docs](http://0:0:0:0:8000/api/schema/docs) (this host only in the container - localhost if running locally).
 
 # License
 
