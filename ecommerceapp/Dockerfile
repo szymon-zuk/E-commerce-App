@@ -1,27 +1,19 @@
-FROM python:3.11 AS builder
+FROM python:3.11.7-alpine3.19
 
-RUN apt-get update && apt-get -y install python3-pip --fix-missing
-
-WORKDIR /app
-COPY requirements.txt /app/
-
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-FROM python:3.11
-
-ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PIP_DISABLE_PIP_VERSION_CHECK 1
+
+RUN apk update && apk add python3-dev gcc libc-dev musl-dev libffi-dev openssl-dev
 
 WORKDIR /app
-COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
-COPY . /app/
 
 ENV DJANGO_SETTINGS_MODULE=ecommerceapp.settings
 ENV DATABASE_URL=sqlite:///ecommerceapp.sqlite3
 
-RUN python manage.py makemigrations
-RUN python manage.py migrate
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
 
-EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+COPY .env /app/docker
+
+COPY . .
