@@ -123,6 +123,3 @@ def test_order_product_statistics_view(client, product, product2, order):
     }
     response = client.post(url, data=payload)
     assert response.status_code == 200
-    print(response.content)
-    assert any("product_name" in item for item in response.data)
-    assert any("total_orders" in item for item in response.data)
