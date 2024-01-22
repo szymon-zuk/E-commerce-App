@@ -1,6 +1,6 @@
-# Django Todo App
+# E-Commerce App
 
-A Django REST Framework application for managing products, orders, and product statistics.
+A Django REST Framework application for managing products, orders, and product statistics. It contains CRUD operations on products and orders, provides sales statistics of certain products and has a setup for confirmation and payment reminding emails which are managed by Celery and Redis.
 
 ## Table of Contents
 
