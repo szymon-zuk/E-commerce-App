@@ -30,7 +30,6 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",
     "127.0.0.1",
-    "https://e-commerce-app-production-f404.up.railway.app/",
 ]
 
 
