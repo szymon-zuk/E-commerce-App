@@ -35,7 +35,8 @@ A Django REST Framework application for managing products, orders, and product s
 - django-allauth
 
 ### Installation
-The easiest way to get started is to clone the repo, then proceed to main directory of the app and run:
+At first you have to create your .env file according to the given .env-example and place it in the main directory of the app (where manage.py is).
+The, the easiest way to get started is to clone the repo, then proceed to main directory of the app and run:
 ```bash
 docker-compose up -d --build
 ```
