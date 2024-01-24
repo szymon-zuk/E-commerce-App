@@ -232,3 +232,4 @@ def test_order_product_statistics_view(
     }
     response = client.post(url, data=payload)
     assert response.status_code == expected_status_code
+
