@@ -148,7 +148,8 @@ class OrderCreateView(generics.CreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def calculate_aggregate_price(self, order):
+    @staticmethod
+    def calculate_aggregate_price(order):
         """
         Calculate the aggregate price of an order based on its items.
 
