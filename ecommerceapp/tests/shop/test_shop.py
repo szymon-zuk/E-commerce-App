@@ -178,8 +178,10 @@ def test_order_create_view(
         "delivery_address": "test delivery address",
         "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
     }
-    mocker.patch("shop.views.OrderCreateView.send_confirmation_email", Mock())
-    mocker.patch("shop.views.OrderCreateView.send_payment_reminder_email", Mock())
+    mocker.patch("common.email_handler.EmailHandler.send_confirmation_email", Mock())
+    mocker.patch(
+        "common.email_handler.EmailHandler.send_payment_reminder_email", Mock()
+    )
     response = client.post(
         url, data=json.dumps(payload), content_type="application/json"
     )

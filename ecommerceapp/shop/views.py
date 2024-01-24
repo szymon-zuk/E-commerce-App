@@ -1,8 +1,5 @@
 from django.db.models import Count
 from django.utils import timezone
-from django.conf import settings
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, filters, status, serializers
 from rest_framework.pagination import PageNumberPagination
@@ -20,9 +17,7 @@ from .serializers import (
 )
 from .permissions import IsSellerOrAdmin
 from rest_framework.parsers import MultiPartParser, FormParser
-from celery import shared_task
-from celery.utils.log import get_task_logger
-from .tasks import send_email_task
+from common.email_handler import EmailHandler
 
 
 class ProductListView(generics.ListAPIView):
@@ -168,52 +163,6 @@ class OrderCreateView(generics.CreateAPIView):
 
         return total_price
 
-    def send_confirmation_email(self, order):
-        """
-        Send an order confirmation email to the user.
-
-        Parameters:
-        - `order` (Order): The order instance.
-
-        Returns:
-        - None
-        """
-        subject = "Order Confirmation"
-        html_message = render_to_string("confirmation_email.html", {"order": order})
-        plain_message = strip_tags(html_message)
-        from_email = settings.EMAIL_HOST_USER
-        to_email = [self.request.user.email]
-
-        send_email_task.delay(
-            subject,
-            plain_message,
-            from_email,
-            to_email,
-            html_message=html_message,
-        )
-
-    def send_payment_reminder_email(self, order):
-        """
-        Send a payment reminder email to the user.
-
-        Parameters:
-        - `order` (Order): The order instance.
-
-        Returns:
-        - None
-        """
-        subject = "Payment reminder"
-        html_message = render_to_string("payment_reminder_email.html", {"order": order})
-        plain_message = strip_tags(html_message)
-        from_email = settings.EMAIL_HOST_USER
-        to_email = [self.request.user.email]
-
-        send_email_task.apply_async(
-            args=(subject, plain_message, from_email, to_email),
-            kwargs={"html_message": html_message},
-            eta=order.payment_due_date - timezone.timedelta(days=1),
-        )
-
     def create(self, request, *args, **kwargs):
         """
         Create a new order and send a confirmation email to the user.
@@ -266,8 +215,13 @@ class OrderCreateView(generics.CreateAPIView):
         else:
             raise serializers.ValidationError("Incorrect first name or last name.")
 
-        self.send_confirmation_email(order)
-        self.send_payment_reminder_email(order)
+        # Email management - setting up Celery tasks
+        EmailHandler.send_confirmation_email(
+            to_email=self.request.user.email, order=order
+        )
+        EmailHandler.send_payment_reminder_email(
+            to_email=self.request.user.email, order=order
+        )
 
         headers = self.get_success_headers(serializer.data)
         return Response(

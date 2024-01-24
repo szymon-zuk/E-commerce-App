@@ -3,7 +3,7 @@ import pytest
 from django.utils import timezone
 from users.models import UserRole
 from shop.models import ProductCategory, Product, Order, OrderItem
-from rest_framework.test import APIClient
+from shop.serializers import ProductSerializer
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
