@@ -3,7 +3,7 @@ import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.utils import json
-from shop.models import Product, Order, OrderItem
+from shop.models import Product, Order
 from unittest.mock import Mock
 
 
