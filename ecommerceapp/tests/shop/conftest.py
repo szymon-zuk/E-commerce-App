@@ -8,23 +8,41 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-@pytest.fixture
-def client(user_seller):
-    refresh = RefreshToken.for_user(user_seller)
+def create_authenticated_client(user):
+    refresh = RefreshToken.for_user(user)
     access_token = str(refresh.access_token)
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
-
     return client
+
+
+@pytest.fixture
+def client_unauthenticated():
+    return APIClient()
+
+
+@pytest.fixture
+def client_customer(user_customer):
+    return create_authenticated_client(user_customer)
+
+
+@pytest.fixture
+def client_seller(user_seller):
+    return create_authenticated_client(user_seller)
+
+
+@pytest.fixture
+def client_admin(user_admin):
+    return create_authenticated_client(user_admin)
 
 
 @pytest.fixture
 def user_customer():
     return UserRole.objects.create_user(
-        first_name="testfirstname",
-        last_name="testlastname",
         username="testcustomer",
-        email="testemail@gmail.com",
+        first_name="test",
+        last_name="test",
+        email="testcustomer@gmail.com",
         password="test12345",
         role="customer",
     )
@@ -32,11 +50,11 @@ def user_customer():
 
 @pytest.fixture
 def user_seller():
-    return UserRole.objects.create(
-        first_name="testfirstname",
-        last_name="testlastname",
+    return UserRole.objects.create_user(
         username="testseller",
-        email="testemail@gmail.com",
+        first_name="test",
+        last_name="test",
+        email="testseller@gmail.com",
         password="test12345",
         role="seller",
     )
@@ -44,11 +62,11 @@ def user_seller():
 
 @pytest.fixture
 def user_admin():
-    return UserRole.objects.create(
-        first_name="testfirstname",
-        last_name="testlastname",
+    return UserRole.objects.create_user(
         username="testadmin",
-        email="testemail@gmail.com",
+        first_name="test",
+        last_name="test",
+        email="testadmin@gmail.com",
         password="test12345",
         role="admin",
     )
@@ -61,7 +79,7 @@ def product_category():
 
 
 @pytest.fixture
-def product(client, product_category):
+def product(product_category):
     product_instance = Product.objects.create(
         id=1,
         name="Test Product",
@@ -73,7 +91,7 @@ def product(client, product_category):
 
 
 @pytest.fixture
-def product2(client, product_category):
+def product2(product_category):
     product_instance = Product.objects.create(
         id=2,
         name="Test Product",

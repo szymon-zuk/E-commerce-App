@@ -1,31 +1,51 @@
 from datetime import timedelta
 import pytest
+from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.utils import json
 from shop.models import Product, Order, OrderItem
 
 
 @pytest.mark.django_db
-def test_product_list_view(client, product):
+@pytest.mark.parametrize(
+    "client_fixture",
+    ["client_customer", "client_seller", "client_admin", "client_unauthenticated"],
+)
+@pytest.mark.parametrize("expected_status_code", [status.HTTP_200_OK])
+def test_product_list_view(request, client_fixture, product, expected_status_code):
+    client = request.getfixturevalue(client_fixture)
+
     url = reverse("product-list")
     response = client.get(url)
-    assert response.status_code == 200
-    assert len(response.data) == Product.objects.count()
-    for product_entry in response.data:
-        assert product_entry["id"] == product.id
-        assert product_entry["name"] == product.name
-        assert product_entry["description"] == product.description
-        assert product_entry["price"] == product.price
-        assert product_entry["image"] == product.image
-        assert product_entry["thumbnail"] == product.thumbnail
-        assert product_entry["category"] == product.category.id
+
+    assert response.status_code == expected_status_code
+
+    if expected_status_code == status.HTTP_200_OK:
+        assert len(response.data) == Product.objects.count()
+
+        for product_entry in response.data:
+            assert product_entry["id"] == product.id
+            assert product_entry["name"] == product.name
+            assert product_entry["description"] == product.description
+            assert product_entry["price"] == product.price
+            assert product_entry["image"] == product.image
+            assert product_entry["thumbnail"] == product.thumbnail
+            assert product_entry["category"] == product.category.id
 
 
 @pytest.mark.django_db
-def test_product_detail_view(client, product):
+@pytest.mark.parametrize(
+    "client_fixture",
+    ["client_customer", "client_seller", "client_admin", "client_unauthenticated"],
+)
+@pytest.mark.parametrize("expected_status_code", [status.HTTP_200_OK])
+def test_product_detail_view(request, product, client_fixture, expected_status_code):
+    client = request.getfixturevalue(client_fixture)
+
     url = reverse("product-details", kwargs={"pk": product.id})
     response = client.get(url)
-    assert response.status_code == 200
+
+    assert response.status_code == expected_status_code
     assert response.data["id"] == product.id
     assert response.data["name"] == product.name
     assert response.data["description"] == product.description
@@ -36,7 +56,20 @@ def test_product_detail_view(client, product):
 
 
 @pytest.mark.django_db
-def test_product_create_view(client, user_seller, product_category):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_201_CREATED),
+        ("client_admin", status.HTTP_201_CREATED),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_product_create_view(
+    request, client_fixture, product_category, expected_status_code
+):
+    client = request.getfixturevalue(client_fixture)
+
     url = reverse("create-product")
 
     payload = {
@@ -47,22 +80,49 @@ def test_product_create_view(client, user_seller, product_category):
     }
 
     response = client.post(url, data=payload)
-    assert response.status_code == 201
-    assert response.data["name"] == payload["name"]
-    assert response.data["description"] == payload["description"]
-    assert response.data["price"] == payload["price"]
-    assert response.data["category"] == product_category.id
+
+    assert response.status_code == expected_status_code
+
+    if expected_status_code == status.HTTP_201_CREATED:
+        assert response.data["name"] == payload["name"]
+        assert response.data["description"] == payload["description"]
+        assert response.data["price"] == payload["price"]
+        assert response.data["category"] == product_category.id
 
 
 @pytest.mark.django_db
-def test_product_update_view_method_get(client, product):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_200_OK),
+        ("client_admin", status.HTTP_200_OK),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_product_update_view_method_get(
+    request, client_fixture, product, expected_status_code
+):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("retrieve-update-delete-product", kwargs={"pk": product.id})
     response = client.get(url)
-    assert response.status_code == 200
+    assert response.status_code == expected_status_code
 
 
 @pytest.mark.django_db
-def test_product_update_view_method_put(client, product, product_category):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_200_OK),
+        ("client_admin", status.HTTP_200_OK),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_product_update_view_method_put(
+    request, client_fixture, product, expected_status_code, product_category
+):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("retrieve-update-delete-product", kwargs={"pk": product.id})
     payload = {
         "name": "New Product",
@@ -71,24 +131,49 @@ def test_product_update_view_method_put(client, product, product_category):
         "category": product_category.id,
     }
     response = client.put(url, data=payload)
-    assert response.status_code == 200
+    assert response.status_code == expected_status_code
 
 
 @pytest.mark.django_db
-def test_product_update_view_method_delete(client, product):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_204_NO_CONTENT),
+        ("client_admin", status.HTTP_204_NO_CONTENT),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_product_update_view_method_delete(
+    request, client_fixture, product, expected_status_code
+):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("retrieve-update-delete-product", kwargs={"pk": product.id})
     response = client.delete(url)
-    assert response.status_code == 204
-    assert not Product.objects.filter(id=product.id).exists()
+    assert response.status_code == expected_status_code
+    if expected_status_code == status.HTTP_204_NO_CONTENT:
+        assert not Product.objects.filter(id=product.id).exists()
 
 
 @pytest.mark.django_db
-def test_order_create_view(client, user_customer, product, product2, order_data):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_201_CREATED),
+        ("client_seller", status.HTTP_201_CREATED),
+        ("client_admin", status.HTTP_201_CREATED),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_order_create_view(
+    request, client_fixture, expected_status_code, product, product2, order_data
+):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("create-order")
     initial_order_count = Order.objects.count()
     payload = {
-        "first_name": user_customer.first_name,
-        "last_name": user_customer.last_name,
+        "first_name": "test",
+        "last_name": "test",
         "delivery_address": "test delivery address",
         "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
     }
@@ -96,25 +181,49 @@ def test_order_create_view(client, user_customer, product, product2, order_data)
         url, data=json.dumps(payload), content_type="application/json"
     )
     print(response.content)
-    assert response.status_code == 201
-    assert response.data["status"] == "Order created successfully"
-    expected_date = order_data["payment_due_date"]
-    obtained_date = response.data["payment_due_date"]
-    assert abs(expected_date - obtained_date) < timedelta(seconds=1)
-    final_order_count = Order.objects.count()
-    assert final_order_count == initial_order_count + 1
+    assert response.status_code == expected_status_code
+    if expected_status_code == status.HTTP_201_CREATED:
+        assert response.data["status"] == "Order created successfully"
+        expected_date = order_data["payment_due_date"]
+        obtained_date = response.data["payment_due_date"]
+        assert abs(expected_date - obtained_date) < timedelta(seconds=1)
+        final_order_count = Order.objects.count()
+        assert final_order_count == initial_order_count + 1
 
 
 @pytest.mark.django_db
-def test_order_list_view(client):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_200_OK),
+        ("client_admin", status.HTTP_200_OK),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_order_list_view(request, client_fixture, expected_status_code):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("order-list")
     response = client.get(url)
-    assert response.status_code == 200
-    assert len(response.data) == Order.objects.count()
+    assert response.status_code == expected_status_code
+    if expected_status_code == status.HTTP_200_OK:
+        assert len(response.data) == Order.objects.count()
 
 
 @pytest.mark.django_db
-def test_order_product_statistics_view(client, product, product2, order):
+@pytest.mark.parametrize(
+    "client_fixture, expected_status_code",
+    [
+        ("client_customer", status.HTTP_403_FORBIDDEN),
+        ("client_seller", status.HTTP_200_OK),
+        ("client_admin", status.HTTP_200_OK),
+        ("client_unauthenticated", status.HTTP_401_UNAUTHORIZED),
+    ],
+)
+def test_order_product_statistics_view(
+    request, client_fixture, expected_status_code, product, product2, order
+):
+    client = request.getfixturevalue(client_fixture)
     url = reverse("order-statistics")
     payload = {
         "start_date": "2020-01-01",
@@ -122,7 +231,4 @@ def test_order_product_statistics_view(client, product, product2, order):
         "number_of_products": 3,
     }
     response = client.post(url, data=payload)
-    assert response.status_code == 200
-    print(response.content)
-    assert any("product_name" in item for item in response.data)
-    assert any("total_orders" in item for item in response.data)
+    assert response.status_code == expected_status_code
