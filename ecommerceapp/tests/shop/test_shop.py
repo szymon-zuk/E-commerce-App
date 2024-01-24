@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.utils import json
 from shop.models import Product, Order, OrderItem
+from unittest.mock import Mock
 
 
 @pytest.mark.django_db
@@ -166,7 +167,7 @@ def test_product_update_view_method_delete(
     ],
 )
 def test_order_create_view(
-    request, client_fixture, expected_status_code, product, product2, order_data
+    request, client_fixture, expected_status_code, product, product2, order_data, mocker
 ):
     client = request.getfixturevalue(client_fixture)
     url = reverse("create-order")
@@ -177,6 +178,8 @@ def test_order_create_view(
         "delivery_address": "test delivery address",
         "products": [{"product": 2, "quantity": 1}, {"product": 1, "quantity": 1}],
     }
+    mocker.patch("shop.views.OrderCreateView.send_confirmation_email", Mock())
+    mocker.patch("shop.views.OrderCreateView.send_payment_reminder_email", Mock())
     response = client.post(
         url, data=json.dumps(payload), content_type="application/json"
     )
@@ -232,4 +235,3 @@ def test_order_product_statistics_view(
     }
     response = client.post(url, data=payload)
     assert response.status_code == expected_status_code
-
